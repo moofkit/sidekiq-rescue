@@ -1,6 +1,6 @@
 # Sidekiq::Rescue
 
-[![Build Status](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml)
+[![Build Status](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml)
 
 [Sidekiq](https://github.com/sidekiq/sidekiq) plugin to rescue jobs from expected errors and retry them later.
 
