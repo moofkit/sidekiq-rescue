@@ -13,4 +13,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  Sidekiq.default_configuration.logger = nil unless ENV["LOG"]
 end

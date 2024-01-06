@@ -2,7 +2,7 @@
 
 RSpec.describe Sidekiq::Rescue::ServerMiddleware do
   let(:middleware) { described_class.new }
-  let(:job_instance) { TestJob.new }
+  let(:job_instance) { WithTestErrorJob.new }
   let(:job_payload) do
     {
       "class" => "TestJob",
@@ -34,16 +34,20 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
   context "with unexpected error" do
     subject(:call_with_unexpected_error) do
-      middleware.call(job_instance, job_payload, "default") do
-        raise StandardError
-      end
+      middleware.call(job_instance, job_payload, "default") { raise UnexpectedError }
     end
+
+    let(:job_instance) { WithUnexpectedErrorJob.new }
 
     it "does not reschedule the job" do
       allow(Sidekiq::Client).to receive(:push)
 
-      expect { call_with_unexpected_error }.to raise_error(StandardError)
+      expect { call_with_unexpected_error }.to raise_error(UnexpectedError)
       expect(Sidekiq::Client).not_to have_received(:push)
+    end
+
+    it "does not suppress the error" do
+      expect { call_with_unexpected_error }.to raise_error(UnexpectedError)
     end
   end
 end
