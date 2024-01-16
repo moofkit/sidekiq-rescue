@@ -14,5 +14,11 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  Sidekiq.default_configuration.logger = nil unless ENV["LOG"]
+  if ENV["LOG"].nil?
+    if defined?(Sidekiq::MAJOR) && Sidekiq::MAJOR >= 7
+      Sidekiq.default_configuration.logger = nil
+    else
+      Sidekiq.logger = nil
+    end
+  end
 end
