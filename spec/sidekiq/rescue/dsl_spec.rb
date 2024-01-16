@@ -8,8 +8,8 @@ RSpec.describe Sidekiq::Rescue::DSL do
     end
   end
 
-  def define_dsl(&block)
-    job_class.instance_eval(&block)
+  def define_dsl(...)
+    job_class.instance_eval(...)
   end
 
   describe "#sidekiq_rescue" do
