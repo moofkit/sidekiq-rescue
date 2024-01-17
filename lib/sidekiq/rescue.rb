@@ -25,17 +25,34 @@ module Sidekiq
   #        chain.add Sidekiq::Rescue::ServerMiddleware
   #        ...
   module Rescue
-    DEFAULT_DELAY = 60
-    DEFAULT_LIMIT = 10
+    @mutex = Mutex.new
+    @config = Config.new.freeze
 
     class << self
-      attr_writer :logger
-
-      # Returns the logger instance. If no logger is set, it defaults to Sidekiq.logger.
+      extend Forwardable
+      # Returns the logger instance
       #
       # @return [Logger] The logger instance.
-      def logger
-        @logger ||= Sidekiq.logger
+      def_delegators :config, :logger
+
+      # @return [Sidekiq::Rescue::Config] The configuration object.
+      attr_reader :config
+
+      # Configures Sidekiq::Rescue
+      # @return [void]
+      # @yieldparam config [Sidekiq::Rescue::Config] The configuration object.
+      # @example
+      #  Sidekiq::Rescue.configure do |config|
+      #    config.delay = 10
+      #    config.limit = 5
+      #    config.logger = Logger.new($stdout)
+      #  end
+      def configure
+        @mutex.synchronize do
+          config = @config.dup
+          yield(config)
+          @config = config.freeze
+        end
       end
     end
   end

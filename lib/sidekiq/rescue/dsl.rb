@@ -31,8 +31,8 @@ module Sidekiq
 
           self.sidekiq_rescue_options = {
             error: error,
-            delay: delay || Sidekiq::Rescue::DEFAULT_DELAY,
-            limit: limit || Sidekiq::Rescue::DEFAULT_LIMIT
+            delay: delay || Sidekiq::Rescue.config.delay,
+            limit: limit || Sidekiq::Rescue.config.limit
           }
         end
 

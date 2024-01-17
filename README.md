@@ -68,7 +68,14 @@ The default values are:
 - `delay`: 60 seconds
 - `limit`: 5 retries
 
-Delay does not increase between retries (unlike Sidekiq standard retry mechanism).
+Delay and limit can be configured globally:
+
+```ruby
+Sidekiq::Rescue.configure do |config|
+  config.delay = 65
+  config.limit = 10
+end
+```
 
 ## Use cases
 
@@ -102,7 +109,7 @@ make lint
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/moofkit/sidekiq_rescue.
+Bug reports and pull requests are welcome on GitHub at https://github.com/moofkit/sidekiq-rescue.
 
 ## License
 
