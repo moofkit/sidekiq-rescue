@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-class WithTestErrorJob
+class BaseJob
   include Sidekiq::Job
   include Sidekiq::Rescue::DSL
+end
 
+class WithTestErrorJob < BaseJob
   sidekiq_rescue TestError
 
   def perform(*)
@@ -11,43 +13,13 @@ class WithTestErrorJob
   end
 end
 
-class WithTestErrorWithoutResqueJob
-  include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
-
-  sidekiq_rescue TestError
-
+class WithTestErrorAndWithoutRescue < BaseJob
   def perform(*)
     raise TestError
   end
 end
 
-class WithParentErrorJob
-  include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
-
-  sidekiq_rescue ParentError
-
-  def perform(*)
-    raise ParentError
-  end
-end
-
-class WithChildErrorJob
-  include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
-
-  sidekiq_rescue ChildError
-
-  def perform(*)
-    raise ChildError
-  end
-end
-
-class WithAllErrorJob
-  include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
-
+class WithMultipleErrorsJob < BaseJob
   sidekiq_rescue [TestError, ParentError, ChildError]
 
   def perform(*)
@@ -55,13 +27,12 @@ class WithAllErrorJob
   end
 end
 
-class WithUnexpectedErrorJob
-  include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
-
+class WithUnexpectedErrorJob < BaseJob
   sidekiq_rescue TestError
 
   def perform(*)
     raise UnexpectedError
   end
 end
+
+ChildJobWithExpectedError = Class.new(WithTestErrorJob)

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "sidekiq_rescue"
+require "sidekiq/testing"
+
 Dir[File.join(__dir__, "support/**/*.rb")].sort.each { |f| require f }
 
 RSpec.configure do |config|
@@ -12,6 +14,18 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  config.before(:all) do
+    Sidekiq::Testing.fake!
+
+    Sidekiq::Testing.server_middleware do |chain|
+      chain.add Sidekiq::Rescue::ServerMiddleware
+    end
+  end
+
+  config.before(:each, :integration) do
+    Sidekiq::Queues.clear_all
   end
 
   if ENV["LOG"].nil?
