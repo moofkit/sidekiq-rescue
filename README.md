@@ -64,6 +64,8 @@ class MyJob
 end
 ```
 
+The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on retries counter and `delay` value. The formula is `delay + retries * rand(10)` seconds. Randomization is used to avoid retry storms.
+
 The default values are:
 - `delay`: 60 seconds
 - `limit`: 5 retries

@@ -3,7 +3,7 @@
 require_relative "lib/sidekiq/rescue/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "sidekiq_rescue"
+  spec.name = "sidekiq-rescue"
   spec.version = Sidekiq::Rescue::VERSION
   spec.authors = ["Dmitrii Ivliev"]
   spec.email = ["mail@ivda.dev"]
