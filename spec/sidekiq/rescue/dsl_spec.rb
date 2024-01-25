@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe Sidekiq::Rescue::DSL do
+RSpec.describe Sidekiq::Rescue::Dsl do
   let(:job_class) do
     Class.new do
       include Sidekiq::Job
-      include Sidekiq::Rescue::DSL
+      include Sidekiq::Rescue::Dsl
     end
   end
 

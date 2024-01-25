@@ -37,7 +37,7 @@ end
 ```ruby
 class MyJob
   include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
+  include Sidekiq::Rescue::Dsl
 
   sidekiq_rescue ExpectedError
 
@@ -54,7 +54,7 @@ You can configure the number of retries and the delay (in seconds) between retri
 ```ruby
 class MyJob
   include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
+  include Sidekiq::Rescue::Dsl
 
   sidekiq_rescue ExpectedError, delay: 60, limit: 5
 

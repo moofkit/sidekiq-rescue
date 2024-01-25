@@ -2,7 +2,7 @@
 
 class BaseJob
   include Sidekiq::Job
-  include Sidekiq::Rescue::DSL
+  include Sidekiq::Rescue::Dsl
 end
 
 class WithTestErrorJob < BaseJob

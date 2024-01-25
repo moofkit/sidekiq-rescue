@@ -2,15 +2,15 @@
 
 module Sidekiq
   module Rescue
-    # This module is included into the job class to provide the DSL for
+    # This module is included into the job class to provide the Dsl for
     # configuring rescue options.
-    module DSL
+    module Dsl
       def self.included(base)
         base.extend(ClassMethods)
         base.sidekiq_class_attribute(:sidekiq_rescue_options)
       end
 
-      # Module containing the DSL methods
+      # Module containing the Dsl methods
       module ClassMethods
         # Configure rescue options for the job.
         # @param error [StandardError] The error class to rescue.
@@ -62,5 +62,9 @@ module Sidekiq
         end
       end
     end
+    # Alias for Dsl; TODO: remove in 1.0.0
+    # @deprecated
+    # @see Dsl
+    DSL = Dsl
   end
 end

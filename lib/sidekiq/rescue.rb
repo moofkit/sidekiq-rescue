@@ -4,13 +4,13 @@ module Sidekiq
   # Sidekiq::Rescue is a Sidekiq plugin which allows you to easily handle
   # exceptions thrown by your jobs.
   #
-  # To use Sidekiq::Rescue, you need to include Sidekiq::Rescue::DSL module
+  # To use Sidekiq::Rescue, you need to include Sidekiq::Rescue::Dsl module
   # in your job class and use the sidekiq_rescue class method to define
   # exception handlers.
   #
   #     class MyJob
   #       include Sidekiq::Job
-  #       include Sidekiq::Rescue::DSL
+  #       include Sidekiq::Rescue::Dsl
   #
   #       sidekiq_rescue NetworkError, delay: 60, limit: 10
   #

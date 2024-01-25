@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Rename `Sidekiq::Rescue::DSL` to `Sidekiq::Rescue::Dsl`
+
 ## [0.1.0] - 2024-01-20
 
 - Initial release
