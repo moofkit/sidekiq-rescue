@@ -31,6 +31,19 @@ RSpec.describe Sidekiq::Rescue::Dsl do
       expect(job_class.sidekiq_rescue_options[:delay]).to eq(10)
     end
 
+    it "sets proc as the delay" do
+      define_dsl { sidekiq_rescue TestError, delay: ->(counter) { counter * 10 } }
+
+      expect(job_class.sidekiq_rescue_options[:delay]).to be_a(Proc)
+    end
+
+    it "raises an ArgumentError if delay proc has no arguments" do
+      expect { define_dsl { sidekiq_rescue TestError, delay: -> { 10 } } }.to raise_error(
+        ArgumentError,
+        "delay proc must accept counter as argument"
+      )
+    end
+
     it "sets the limit" do
       define_dsl { sidekiq_rescue TestError, limit: 5 }
 
@@ -74,7 +87,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
     it "raises ArgumentError if delay is not an integer or float" do
       expect { define_dsl { sidekiq_rescue TestError, delay: "60" } }.to raise_error(
         ArgumentError,
-        "delay must be integer or float"
+        "delay must be integer, float or proc"
       )
     end
 

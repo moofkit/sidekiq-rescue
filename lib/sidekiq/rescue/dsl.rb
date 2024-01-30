@@ -15,7 +15,7 @@ module Sidekiq
         # Configure rescue options for the job.
         # @param error [StandardError] The error class to rescue.
         # @param error [Array<StandardError>] The error classes to rescue.
-        # @param delay [Integer] The delay in seconds before retrying the job.
+        # @param delay [Integer, Float, Proc] The delay in seconds before retrying the job.
         # @param limit [Integer] The maximum number of retries.
         # @return [void]
         # @raise [ArgumentError] if error is not a StandardError
@@ -51,10 +51,17 @@ module Sidekiq
         end
 
         def validate_delay_argument(delay)
-          return unless delay && !delay.is_a?(Integer) && !delay.is_a?(Float)
+          return if delay.nil?
+          return if delay.is_a?(Integer) || delay.is_a?(Float)
+
+          if delay.is_a?(Proc)
+            raise ArgumentError, "delay proc must accept counter as argument" if delay.arity.zero?
+
+            return
+          end
 
           raise ArgumentError,
-                "delay must be integer or float"
+                "delay must be integer, float or proc"
         end
 
         def validate_limit_argument(limit)

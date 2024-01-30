@@ -84,4 +84,13 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       expect(job_class.jobs.size).to eq(0)
     end
   end
+
+  context "with proc as delay" do
+    let(:job_class) { WithTestErrorAndDelayProc }
+
+    it "reschedules the job with correct delay" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 10)
+    end
+  end
 end

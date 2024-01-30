@@ -79,6 +79,21 @@ Sidekiq::Rescue.configure do |config|
 end
 ```
 
+You can also configure a job to have the delay to be a proc:
+
+```ruby
+sidekiq_rescue ExpectedError, delay: ->(counter) { counter * 60 }
+```
+
+or globally:
+
+```ruby
+Sidekiq::Rescue.configure do |config|
+  config.delay = ->(counter) { counter * 60 }
+end
+```
+
+
 ## Use cases
 
 Sidekiq::Rescue is useful when you want to retry jobs that failed due to expected errors and not spam your exception tracker with these errors. For example, you may want to retry a job that failed due to a network error or a temporary outage of a third party service, rather than a bug in your code.

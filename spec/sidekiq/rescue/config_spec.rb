@@ -12,6 +12,12 @@ RSpec.describe Sidekiq::Rescue::Config do
       config = described_class.new
       expect { config.delay = "invalid" }.to raise_error(ArgumentError)
     end
+
+    it "sets the delay value as a Proc" do
+      config = described_class.new
+      config.delay = -> { 30 }
+      expect(config.delay).to be_a(Proc)
+    end
   end
 
   describe "#limit=" do

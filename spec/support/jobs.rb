@@ -13,6 +13,14 @@ class WithTestErrorJob < BaseJob
   end
 end
 
+class WithTestErrorAndDelayProc < BaseJob
+  sidekiq_rescue TestError, delay: ->(counter) { counter * 10 }
+
+  def perform(*)
+    raise TestError
+  end
+end
+
 class WithTestErrorAndWithoutRescue < BaseJob
   def perform(*)
     raise TestError

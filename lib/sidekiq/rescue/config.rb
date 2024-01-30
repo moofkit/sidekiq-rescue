@@ -24,9 +24,12 @@ module Sidekiq
       # @return [void]
       # @raise [ArgumentError] if delay is not an Integer or Float
       def delay=(delay)
-        raise ArgumentError, "delay must be an Integer or Float" unless delay.is_a?(Integer) || delay.is_a?(Float)
-
-        @delay = delay
+        case delay
+        when Integer, Float, Proc
+          @delay = delay
+        else
+          raise ArgumentError, "delay must be Integer, Float or Proc"
+        end
       end
 
       # The maximum number of retries.
