@@ -24,8 +24,8 @@ module Sidekiq
         # @raise [ArgumentError] if limit is not an Integer
         # @example
         #  sidekiq_rescue NetworkError, delay: 60, limit: 10
-        def sidekiq_rescue(error, delay: nil, limit: nil)
-          validate_error_argument(error)
+        def sidekiq_rescue(*error, delay: nil, limit: nil)
+          error = validate_and_unpack_error_argument(error)
           validate_delay_argument(delay)
           validate_limit_argument(limit)
 
@@ -38,16 +38,12 @@ module Sidekiq
 
         private
 
-        def validate_error_argument(error)
-          error_arg_valid = if error.is_a?(Array)
-                              error.all? { |e| e < StandardError }
-                            else
-                              error < StandardError
-                            end
-          return if error_arg_valid
+        def validate_and_unpack_error_argument(error)
+          error_arg_valid = error.any? && error.flatten.all? { |e| e < StandardError } if error.is_a?(Array)
+          return error.flatten if error_arg_valid
 
           raise ArgumentError,
-                "error must be an ancestor of StandardError or an array of ancestors of StandardError"
+                "error must be an ancestor of StandardError"
         end
 
         def validate_delay_argument(delay)

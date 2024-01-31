@@ -93,10 +93,71 @@ Sidekiq::Rescue.configure do |config|
 end
 ```
 
-
 ## Use cases
 
 Sidekiq::Rescue is useful when you want to retry jobs that failed due to expected errors and not spam your exception tracker with these errors. For example, you may want to retry a job that failed due to a network error or a temporary outage of a third party service, rather than a bug in your code.
+
+## Examples
+
+### Retry a job that may failed due to a network error
+
+```ruby
+class MyJob
+  include Sidekiq::Job
+  include Sidekiq::Rescue::Dsl
+
+  sidekiq_rescue Faraday::ConnectionFailed
+
+  def perform(*)
+    # ...
+  end
+end
+```
+
+### Retry a job that may failed due to different errors
+
+```ruby
+class MyJob
+  include Sidekiq::Job
+  include Sidekiq::Rescue::Dsl
+
+  sidekiq_rescue Faraday::ConnectionFailed, Faraday::TimeoutError
+
+  def perform(*)
+    # ...
+  end
+end
+```
+
+### Retry a job that may failed due to different errors with custom delay
+
+```ruby
+class MyJob
+  include Sidekiq::Job
+  include Sidekiq::Rescue::Dsl
+
+  sidekiq_rescue Faraday::ConnectionFailed, Faraday::TimeoutError, delay: 60
+
+  def perform(*)
+    # ...
+  end
+end
+```
+
+### Retry a job that may failed due to different errors with custom delays and limits
+
+```ruby
+class MyJob
+  include Sidekiq::Job
+  include Sidekiq::Rescue::Dsl
+
+  sidekiq_rescue Faraday::ConnectionFailed, Faraday::TimeoutError, delay: 60, limit: 5
+
+  def perform(*)
+    # ...
+  end
+end
+```
 
 ## Motivation
 

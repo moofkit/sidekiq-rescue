@@ -16,11 +16,11 @@ RSpec.describe Sidekiq::Rescue::Dsl do
     it "sets error and default options" do
       define_dsl { sidekiq_rescue TestError }
 
-      expect(job_class.sidekiq_rescue_options).to eq(error: TestError, delay: 60, limit: 10)
+      expect(job_class.sidekiq_rescue_options).to eq(error: [TestError], delay: 60, limit: 10)
     end
 
     it "sets the error classes" do
-      define_dsl { sidekiq_rescue [TestError, ParentError, ChildError] }
+      define_dsl { sidekiq_rescue TestError, ParentError, ChildError }
 
       expect(job_class.sidekiq_rescue_options[:error]).to eq([TestError, ParentError, ChildError])
     end
@@ -55,7 +55,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
         define_dsl do
           sidekiq_rescue
         end
-      end.to raise_error(ArgumentError, "wrong number of arguments (given 0, expected 1)")
+      end.to raise_error(ArgumentError, "error must be an ancestor of StandardError")
     end
 
     it "raises ArgumentError if there are unknown options" do
@@ -71,7 +71,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
 
       expect { define_dsl { sidekiq_rescue exception_class } }.to raise_error(
         ArgumentError,
-        "error must be an ancestor of StandardError or an array of ancestors of StandardError"
+        "error must be an ancestor of StandardError"
       )
     end
 
@@ -80,7 +80,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
 
       expect { define_dsl { sidekiq_rescue [TestError, klass] } }.to raise_error(
         ArgumentError,
-        "error must be an ancestor of StandardError or an array of ancestors of StandardError"
+        "error must be an ancestor of StandardError"
       )
     end
 

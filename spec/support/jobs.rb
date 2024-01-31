@@ -28,7 +28,7 @@ class WithTestErrorAndWithoutRescue < BaseJob
 end
 
 class WithMultipleErrorsJob < BaseJob
-  sidekiq_rescue [TestError, ParentError, ChildError]
+  sidekiq_rescue TestError, ParentError, ChildError
 
   def perform(*)
     raise [TestError, ParentError, ChildError].sample

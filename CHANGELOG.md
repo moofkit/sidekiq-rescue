@@ -2,6 +2,7 @@
 
 - Rename `Sidekiq::Rescue::DSL` to `Sidekiq::Rescue::Dsl`
 - Update the `delay` option to now accept a proc as an argument
+- Update dsl to accept a list of errors
 
 ## [0.1.0] - 2024-01-20
 
