@@ -159,6 +159,27 @@ class MyJob
 end
 ```
 
+### Testing
+
+Exceptions are only rescued when Sidekiq middleware is used. With that in mind, disable the Sidekiq test harness.
+
+```ruby
+require 'rails_helper'
+
+RSpec.describe MyJob do
+  before do
+    allow(ApiClient).to receive(:new).and_raise(ApiClient::SomethingWentWrongError)
+  end
+
+  it 'rescues the Error the job without raising' do
+    Sidekiq::Testing.disable! do
+      MyJob.perform_async(replicate_id)
+      MyJob.drain
+    end
+  end
+end
+```
+
 ## Motivation
 
 Sidekiq provides a retry mechanism for jobs that failed due to unexpected errors. However, it does not provide a way to retry jobs that failed due to expected errors. This gem aims to fill this gap.
