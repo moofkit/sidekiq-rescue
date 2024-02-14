@@ -27,7 +27,7 @@ Or install it yourself as:
 ```ruby
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::Rescue::Middleware
+    chain.add Sidekiq::Rescue::ServerMiddleware
   end
 end
 ```
