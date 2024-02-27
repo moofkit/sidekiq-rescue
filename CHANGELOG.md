@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.2.1] - 2024-02-27
+
 - Fix readme with correct middleware name
 - Add RSpec matchers
 
@@ -18,6 +20,7 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.2.1
 [0.2.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.2.0
 [0.1.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.1.0
