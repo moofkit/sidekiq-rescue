@@ -10,3 +10,6 @@ test:
 
 lint:
 	bundle exec rubocop
+
+release:
+	bundle exec rake release
