@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- Fix readme with correct middleware name
+- Add RSpec matchers
+
 ## [0.2.0] - 2024-02-03
 
 - Rename `Sidekiq::Rescue::DSL` to `Sidekiq::Rescue::Dsl`

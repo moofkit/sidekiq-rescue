@@ -93,6 +93,68 @@ Sidekiq::Rescue.configure do |config|
 end
 ```
 
+### Testing
+
+1. Unit tests (recommended)
+
+In case you want to test the rescue configuration, this gem provides RSpec matchers:
+
+```ruby
+RSpec.cofigure do |config|
+  config.include Sidekiq::Rescue::RSpec::Matchers, type: :job
+end
+
+RSpec.describe MyJob do
+  it "rescues from expected errors" do
+    expect(MyJob).to have_sidekiq_rescue(ExpectedError)
+  end
+end
+```
+
+It also provides a way to test the delay and limit:
+
+```ruby
+RSpec.describe MyJob do
+  it "rescues from expected errors with custom delay and limit" do
+    expect(MyJob).to have_sidekiq_rescue(ExpectedError).with_delay(60).with_limit(5)
+  end
+end
+```
+
+2. Integration tests with `Sidekiq::Testing`
+Firstly, you need to configure `Sidekiq::Testing` to use `Sidekiq::Rescue::ServerMiddleware` middleware:
+
+```ruby
+# spec/spec_helper.rb or spec/rails_helper.rb
+require "sidekiq/testing"
+
+RSpec.configure do |config|
+  config.before(:all) do
+    Sidekiq::Testing.fake!
+
+    Sidekiq::Testing.server_middleware do |chain|
+      chain.add Sidekiq::Rescue::ServerMiddleware
+    end
+  end
+end
+```
+
+And test the job with the next snippet
+
+```ruby
+# spec/jobs/my_job_spec.rb
+RSpec.describe MyJob do
+  before do
+    allow(ApiClient).to receive(:new).and_raise(ApiClient::SomethingWentWrongError)
+  end
+
+  it "retries job if it fails with ExpectedError" do
+    MyJob.perform_async('test')
+    expect { MyJob.perform_one }.not_to raise_error # pefrom_one is a method from Sidekiq::Testing that runs the job once
+  end
+end
+```
+
 ## Use cases
 
 Sidekiq::Rescue is useful when you want to retry jobs that failed due to expected errors and not spam your exception tracker with these errors. For example, you may want to retry a job that failed due to a network error or a temporary outage of a third party service, rather than a bug in your code.
