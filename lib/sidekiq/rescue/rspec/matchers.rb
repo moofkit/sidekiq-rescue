@@ -30,7 +30,8 @@ module Sidekiq
           match do |actual|
             actual.is_a?(Class) &&
               actual.include?(Sidekiq::Rescue::Dsl) &&
-              actual.sidekiq_rescue_options[:error].include?(expected) &&
+              actual.respond_to?(:sidekiq_rescue_options) &&
+              Array(actual&.sidekiq_rescue_options&.[](:error)).include?(expected) &&
               (@delay.nil? || actual.sidekiq_rescue_options[:delay] == @delay) &&
               (@limit.nil? || actual.sidekiq_rescue_options[:limit] == @limit)
           end
@@ -41,7 +42,8 @@ module Sidekiq
 
             actual.is_a?(Class) &&
               actual.include?(Sidekiq::Rescue::Dsl) &&
-              !actual.sidekiq_rescue_options[:error].include?(expected)
+              actual.respond_to?(:sidekiq_rescue_options) &&
+              !Array(actual&.sidekiq_rescue_options&.[](:error)).include?(expected)
           end
         end
       end

@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Fix issue with RSpec matcher when job is not rescueable
+
 ## [0.2.1] - 2024-02-27
 
 - Fix readme with correct middleware name

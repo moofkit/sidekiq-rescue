@@ -11,11 +11,33 @@ RSpec.describe Sidekiq::Rescue::RSpec::Matchers do
     expect(job_class).not_to have_sidekiq_rescue(StandardError)
   end
 
+  context "with multiple errors" do
+    let(:job_class) { WithMultipleErrorsJob }
+
+    it "matches TestError" do
+      expect(job_class).to have_sidekiq_rescue(TestError)
+    end
+
+    it "matches ParentError" do
+      expect(job_class).to have_sidekiq_rescue(ParentError)
+    end
+
+    it "matches ChildError" do
+      expect(job_class).to have_sidekiq_rescue(ChildError)
+    end
+  end
+
   describe "#failure_message" do
     it "returns the correct message" do
       matcher = have_sidekiq_rescue(TestError)
       matcher.matches?(job_class)
       expect(matcher.failure_message).to eq("expected WithTestErrorJob to be rescueable with TestError")
+    end
+
+    it "returns the correct message when job is not rescueable" do
+      matcher = have_sidekiq_rescue(StandardError)
+      matcher.matches?(BaseJob)
+      expect(matcher.failure_message).to eq("expected BaseJob to be rescueable with StandardError")
     end
   end
 
