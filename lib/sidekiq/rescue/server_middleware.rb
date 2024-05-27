@@ -21,9 +21,11 @@ module Sidekiq
 
       private
 
-      def sidekiq_rescue(job_payload, delay:, limit:, error:, **)
+      def sidekiq_rescue(job_payload, **options)
+        errors = options.keys
         yield
-      rescue *error => e
+      rescue *errors => e
+        delay, limit = options.fetch(e.class).fetch_values(:delay, :limit)
         rescue_counter = increment_rescue_counter(job_payload)
         raise e if rescue_counter > limit
 

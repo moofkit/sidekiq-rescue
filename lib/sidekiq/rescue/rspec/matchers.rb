@@ -31,9 +31,9 @@ module Sidekiq
             actual.is_a?(Class) &&
               actual.include?(Sidekiq::Rescue::Dsl) &&
               actual.respond_to?(:sidekiq_rescue_options) &&
-              Array(actual&.sidekiq_rescue_options&.[](:error)).include?(expected) &&
-              (@delay.nil? || actual.sidekiq_rescue_options[:delay] == @delay) &&
-              (@limit.nil? || actual.sidekiq_rescue_options[:limit] == @limit)
+              actual&.sidekiq_rescue_options&.keys&.include?(expected) &&
+              (@delay.nil? || actual.sidekiq_rescue_options.fetch(expected)[:delay] == @delay) &&
+              (@limit.nil? || actual.sidekiq_rescue_options.fetch(expected)[:limit] == @limit)
           end
 
           match_when_negated do |actual|
