@@ -3,6 +3,31 @@
 [![Build Status](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/moofkit/sidekiq-rescue/actions/workflows/main.yml)
 
 [Sidekiq](https://github.com/sidekiq/sidekiq) plugin to rescue jobs from expected errors and retry them later.
+Catch expected errors and retry the job with a delay and a limit. It's useful when you want to retry jobs that failed due to expected errors and not spam your exception tracker with these errors. If the exception will getting raised beyond the limit, it will be re-raised and will be handled by Sidekiq standard retry mechanism.
+
+Handlers are searched from bottom to top, and up the inheritance chain. The first handler that `exception.is_a?(klass)` holds true will be used.
+
+## Example
+
+```ruby
+class MyJob
+  include Sidekiq::Job
+  include Sidekiq::Rescue::Dsl
+
+  sidekiq_rescue CustomAppException # defaults to 60 seconds delay and 10 retries
+  sidekiq_rescue AnotherCustomAppException, delay: ->(counter) { counter * 2 }
+  sidekiq_rescue CustomInfrastructureException, delay: 5.minutes
+  sidekiq_rescue ActiveRecord::Deadlocked, delay: 5.seconds, limit: 3
+  sidekiq_rescue Net::OpenTimeout, Timeout::Error, limit: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+
+  def perform(*args)
+    # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
+    # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
+    # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
+  end
+end
+```
+
 
 ## Installation
 
@@ -224,7 +249,7 @@ end
 ## Motivation
 
 Sidekiq provides a retry mechanism for jobs that failed due to unexpected errors. However, it does not provide a way to retry jobs that failed due to expected errors. This gem aims to fill this gap.
-In addition, it provides a way to configure the number of retries and the delay between retries independently from the Sidekiq standard retry mechanism.
+In addition, it provides a way to configure the number of retries and the delay between retries independently from the Sidekiq standard retry mechanism. Mostly inspired by [ActiveJob](https://edgeapi.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-retry_on)
 
 ## Supported Ruby versions
 
