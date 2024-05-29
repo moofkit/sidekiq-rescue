@@ -27,7 +27,7 @@ class WithTestErrorAndWithoutRescue < BaseJob
   end
 end
 
-class WithMultipleErrorsJob < BaseJob
+class WithGroupErrorsJob < BaseJob
   sidekiq_rescue TestError, ParentError, ChildError
 
   def perform(*)

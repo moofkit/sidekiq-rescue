@@ -11,9 +11,8 @@ module Sidekiq
 
       def call(job_instance, job_payload, _queue, &block)
         job_class = job_instance.class
-        options = job_class.sidekiq_rescue_options if job_class.respond_to?(:sidekiq_rescue_options)
-        if options
-          sidekiq_rescue(job_payload, **options, &block)
+        if job_class.respond_to?(:sidekiq_rescue_options) && !job_class.sidekiq_rescue_options.nil?
+          sidekiq_rescue(job_payload, job_class, &block)
         else
           yield
         end
@@ -21,21 +20,29 @@ module Sidekiq
 
       private
 
-      def sidekiq_rescue(job_payload, **options)
-        errors = options.keys
+      def sidekiq_rescue(job_payload, job_class)
+        klasses_to_rescue = job_class.sidekiq_rescue_options.keys.flatten
         yield
-      rescue *errors => e
-        delay, limit = options.fetch(e.class).fetch_values(:delay, :limit)
-        rescue_counter = increment_rescue_counter(job_payload)
-        raise e if rescue_counter > limit
-
-        reschedule_at = calculate_reschedule_time(delay, rescue_counter)
-        log_reschedule_info(rescue_counter, e, reschedule_at)
-        reschedule_job(job_payload, reschedule_at, rescue_counter)
+      rescue *klasses_to_rescue => e
+        error_group, options = job_class.sidekiq_rescue_options.to_a.find do |error_group, _options|
+          Array(error_group).include?(e.class)
+        end
+        rescue_error(e, error_group, options, job_payload)
       end
 
-      def increment_rescue_counter(job_payload)
-        rescue_counter = job_payload["sidekiq_rescue_counter"].to_i
+      def rescue_error(error, error_group, options, job_payload)
+        delay, limit = options.fetch_values(:delay, :limit)
+        rescue_counter = increment_rescue_counter_for(error_group, job_payload)
+        raise error if rescue_counter > limit
+
+        reschedule_at = calculate_reschedule_time(delay, rescue_counter)
+        log_reschedule_info(rescue_counter, error, reschedule_at)
+        reschedule_job(job_payload: job_payload, reschedule_at: reschedule_at, rescue_counter: rescue_counter,
+                       error_group: error_group)
+      end
+
+      def increment_rescue_counter_for(error_group, job_payload)
+        rescue_counter = job_payload.dig("sidekiq_rescue_exceptions_counter", error_group.to_s) || 0
         rescue_counter += 1
         rescue_counter
       end
@@ -54,8 +61,10 @@ module Sidekiq
                                     "#{error.message}; rescheduling at #{reschedule_at}")
       end
 
-      def reschedule_job(job_payload, reschedule_at, rescue_counter)
-        Sidekiq::Client.push(job_payload.merge("at" => reschedule_at, "sidekiq_rescue_counter" => rescue_counter))
+      def reschedule_job(job_payload:, reschedule_at:, rescue_counter:, error_group:)
+        payload = job_payload.merge("at" => reschedule_at,
+                                    "sidekiq_rescue_exceptions_counter" => { error_group.to_s => rescue_counter })
+        Sidekiq::Client.push(payload)
       end
     end
   end

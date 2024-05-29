@@ -22,7 +22,8 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
       call_with_expected_error
       expect(Sidekiq::Client).to have_received(:push).with(
-        job_payload.merge("at" => be_within(10).of(Time.now.to_f + 60), "sidekiq_rescue_counter" => 1)
+        job_payload.merge("at" => be_within(10).of(Time.now.to_f + 60),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
       )
     end
 
@@ -45,7 +46,7 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
         "queue" => "default",
         "jid" => "123",
         "created_at" => Time.now.to_f,
-        "sidekiq_rescue_counter" => 1
+        "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 }
       }
     end
 
@@ -54,7 +55,8 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
       call_with_expected_error_and_delay_proc
       expect(Sidekiq::Client).to have_received(:push).with(
-        job_payload.merge("at" => be_within(20).of(Time.now.to_f + (10 * 2)), "sidekiq_rescue_counter" => 2)
+        job_payload.merge("at" => be_within(20).of(Time.now.to_f + (10 * 2)),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 2 })
       )
     end
   end
@@ -75,6 +77,24 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
     it "does not suppress the error" do
       expect { call_with_unexpected_error }.to raise_error(UnexpectedError)
+    end
+  end
+
+  context "with grouped errors" do
+    subject(:call_with_multiple_errors) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithGroupErrorsJob.new }
+
+    it "reschedules the job on expected error and increments counter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_multiple_errors
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(10).of(Time.now.to_f + 60),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError, ParentError, ChildError]" => 1 })
+      )
     end
   end
 end

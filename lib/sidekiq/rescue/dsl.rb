@@ -31,6 +31,10 @@ module Sidekiq
           assign_sidekiq_rescue_options(unpacked_errors, delay, limit)
         end
 
+        def sidekiq_rescue_options_for(error)
+          sidekiq_rescue_options&.find { |k, _v| k.include?(error) }&.last
+        end
+
         private
 
         def validate_and_unpack_error_argument(error)
@@ -61,9 +65,7 @@ module Sidekiq
 
         def assign_sidekiq_rescue_options(errors, delay, limit)
           self.sidekiq_rescue_options ||= {}
-          errors.each do |error|
-            self.sidekiq_rescue_options.merge!(error => { delay: delay, limit: limit })
-          end
+          self.sidekiq_rescue_options.merge!(errors => { delay: delay, limit: limit })
         end
       end
     end

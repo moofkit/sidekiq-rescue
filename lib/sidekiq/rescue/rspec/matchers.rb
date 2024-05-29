@@ -28,12 +28,17 @@ module Sidekiq
           end
 
           match do |actual|
-            actual.is_a?(Class) &&
-              actual.include?(Sidekiq::Rescue::Dsl) &&
-              actual.respond_to?(:sidekiq_rescue_options) &&
-              actual&.sidekiq_rescue_options&.keys&.include?(expected) &&
-              (@delay.nil? || actual.sidekiq_rescue_options.fetch(expected)[:delay] == @delay) &&
-              (@limit.nil? || actual.sidekiq_rescue_options.fetch(expected)[:limit] == @limit)
+            matched = actual.is_a?(Class) &&
+                      actual.include?(Sidekiq::Rescue::Dsl) &&
+                      actual.respond_to?(:sidekiq_rescue_options) &&
+                      actual&.sidekiq_rescue_options&.keys&.flatten&.include?(expected)
+
+            return false unless matched
+
+            options = actual.sidekiq_rescue_options_for(expected)
+
+            (@delay.nil? || options.fetch(:delay) == @delay) &&
+              (@limit.nil? || options.fetch(:limit) == @limit)
           end
 
           match_when_negated do |actual|

@@ -12,7 +12,7 @@ RSpec.describe Sidekiq::Rescue::RSpec::Matchers do
   end
 
   context "with multiple errors" do
-    let(:job_class) { WithMultipleErrorsJob }
+    let(:job_class) { WithGroupErrorsJob }
 
     it "matches TestError" do
       expect(job_class).to have_sidekiq_rescue(TestError)

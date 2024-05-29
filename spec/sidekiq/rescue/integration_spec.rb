@@ -19,9 +19,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
 
     it "reschedules the job with correct arguments" do
       perform_async
-      scheduled_job = last_job
-      expect(scheduled_job["args"]).to eq(args)
-      expect(scheduled_job["sidekiq_rescue_counter"]).to eq(1)
+      expect(last_job["args"]).to eq(args)
     end
 
     it "reschedules the job with correct arguments and delay" do
@@ -33,7 +31,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
     it "increments the counter" do
       perform_async
 
-      expect(last_job["sidekiq_rescue_counter"]).to eq(1)
+      expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[TestError]" => 1)
     end
 
     it "raises an error if the counter is greater than the limit" do
@@ -56,7 +54,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
   end
 
   context "with multiple errors" do
-    let(:job_class) { WithMultipleErrorsJob }
+    let(:job_class) { WithGroupErrorsJob }
 
     it "rescues the expected error" do
       expect { perform_async }.not_to raise_error
@@ -102,6 +100,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       it "reschedules the job with correct delay" do
         expect { perform_async }.not_to raise_error
         expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 10)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[TestError]" => 1)
       end
     end
 
@@ -111,6 +110,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       it "reschedules the job with correct delay" do
         expect { perform_async }.not_to raise_error
         expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 20)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[ParentError]" => 1)
       end
     end
 
@@ -120,6 +120,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       it "reschedules the job with correct delay" do
         expect { perform_async }.not_to raise_error
         expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 30)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[ChildError]" => 1)
       end
     end
   end
