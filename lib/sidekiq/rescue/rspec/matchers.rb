@@ -35,7 +35,7 @@ module Sidekiq
 
             return false unless matched
 
-            options = actual.sidekiq_rescue_options_for(expected)
+            _error_group, options = actual.sidekiq_rescue_error_group_with_options_by(expected.new)
 
             (@delay.nil? || options.fetch(:delay) == @delay) &&
               (@limit.nil? || options.fetch(:limit) == @limit)

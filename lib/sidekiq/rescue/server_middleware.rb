@@ -23,9 +23,7 @@ module Sidekiq
       def sidekiq_rescue(job_payload, job_class)
         yield
       rescue StandardError => e
-        error_group, options = job_class.sidekiq_rescue_options.reverse_each.find do |error_group, _options|
-          Array(error_group).any? { |error| e.is_a?(error) }
-        end
+        error_group, options = job_class.sidekiq_rescue_error_group_with_options_by(e)
         raise e unless error_group
 
         rescue_error(e, error_group, options, job_payload)

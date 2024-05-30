@@ -107,5 +107,41 @@ RSpec.describe Sidekiq::Rescue::Dsl do
         "limit must be integer"
       )
     end
+
+    it "inherits the parent's options in right order" do
+      parent = Class.new do
+        include Sidekiq::Job
+        include Sidekiq::Rescue::Dsl
+
+        sidekiq_rescue ParentError, delay: 10
+      end
+
+      child = Class.new(parent) do
+        sidekiq_rescue ChildError, delay: 20
+      end
+
+      expect(parent.sidekiq_rescue_options).to eq({ [ParentError] => { delay: 10, limit: 10 } })
+      expect(child.sidekiq_rescue_options.to_a).to eq([[[ParentError], { delay: 10, limit: 10 }],
+                                                       [[ChildError], { delay: 20, limit: 10 }]])
+    end
+  end
+
+  describe "#sidekiq_rescue_error_group_with_options_by" do
+    it "returns the options for the error" do
+      parent = Class.new do
+        include Sidekiq::Job
+        include Sidekiq::Rescue::Dsl
+
+        sidekiq_rescue ParentError, delay: 10
+      end
+
+      child = Class.new(parent) do
+        sidekiq_rescue ChildError, delay: 20
+      end
+
+      expect(parent.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10)
+      expect(child.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10)
+      expect(child.sidekiq_rescue_error_group_with_options_by(ChildError.new).last).to eq(delay: 20, limit: 10)
+    end
   end
 end

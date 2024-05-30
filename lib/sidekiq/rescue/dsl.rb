@@ -31,8 +31,13 @@ module Sidekiq
           assign_sidekiq_rescue_options(unpacked_errors, delay, limit)
         end
 
-        def sidekiq_rescue_options_for(error)
-          sidekiq_rescue_options&.find { |k, _v| k.include?(error) }&.last
+        # Find the error group and options for the given exception.
+        # @param exception [StandardError] The exception to find the error group for.
+        # @return [Array<StandardError>, Hash] The error group and options.
+        def sidekiq_rescue_error_group_with_options_by(exception)
+          sidekiq_rescue_options.reverse_each.find do |error_group, _options|
+            Array(error_group).any? { |error_klass| exception.is_a?(error_klass) }
+          end
         end
 
         private
@@ -65,7 +70,7 @@ module Sidekiq
 
         def assign_sidekiq_rescue_options(errors, delay, limit)
           self.sidekiq_rescue_options ||= {}
-          self.sidekiq_rescue_options.merge!(errors => { delay: delay, limit: limit })
+          self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => { delay: delay, limit: limit })
         end
       end
     end
