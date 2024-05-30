@@ -5,4 +5,7 @@ require:
   - rubocop-rspec
 
 RSpec/MultipleExpectations:
-  Max: 2
+  Max: 3
+
+RSpec/ExampleLength:
+  Max: 15

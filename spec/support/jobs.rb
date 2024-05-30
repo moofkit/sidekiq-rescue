@@ -27,7 +27,7 @@ class WithTestErrorAndWithoutRescue < BaseJob
   end
 end
 
-class WithMultipleErrorsJob < BaseJob
+class WithGroupErrorsJob < BaseJob
   sidekiq_rescue TestError, ParentError, ChildError
 
   def perform(*)
@@ -40,6 +40,16 @@ class WithUnexpectedErrorJob < BaseJob
 
   def perform(*)
     raise UnexpectedError
+  end
+end
+
+class WithMultipleErrorsAndDelayJob < BaseJob
+  sidekiq_rescue TestError, delay: 10, limit: 5
+  sidekiq_rescue ParentError, delay: 20, limit: 10
+  sidekiq_rescue ChildError, delay: 30, limit: 15
+
+  def perform(error_class)
+    raise Object.const_get(error_class)
   end
 end
 

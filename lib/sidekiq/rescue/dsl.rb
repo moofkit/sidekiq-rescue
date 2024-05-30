@@ -24,16 +24,15 @@ module Sidekiq
         # @raise [ArgumentError] if limit is not an Integer
         # @example
         #  sidekiq_rescue NetworkError, delay: 60, limit: 10
-        def sidekiq_rescue(*error, delay: nil, limit: nil)
-          error = validate_and_unpack_error_argument(error)
+        def sidekiq_rescue(*errors, delay: Sidekiq::Rescue.config.delay, limit: Sidekiq::Rescue.config.limit)
+          unpacked_errors = validate_and_unpack_error_argument(errors)
           validate_delay_argument(delay)
           validate_limit_argument(limit)
+          assign_sidekiq_rescue_options(unpacked_errors, delay, limit)
+        end
 
-          self.sidekiq_rescue_options = {
-            error: error,
-            delay: delay || Sidekiq::Rescue.config.delay,
-            limit: limit || Sidekiq::Rescue.config.limit
-          }
+        def sidekiq_rescue_options_for(error)
+          sidekiq_rescue_options&.find { |k, _v| k.include?(error) }&.last
         end
 
         private
@@ -62,6 +61,11 @@ module Sidekiq
 
         def validate_limit_argument(limit)
           raise ArgumentError, "limit must be integer" if limit && !limit.is_a?(Integer)
+        end
+
+        def assign_sidekiq_rescue_options(errors, delay, limit)
+          self.sidekiq_rescue_options ||= {}
+          self.sidekiq_rescue_options.merge!(errors => { delay: delay, limit: limit })
         end
       end
     end

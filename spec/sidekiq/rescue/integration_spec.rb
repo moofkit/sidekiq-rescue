@@ -19,26 +19,23 @@ RSpec.describe "Sidekiq::Rescue", :integration do
 
     it "reschedules the job with correct arguments" do
       perform_async
-      scheduled_job = last_job
-      expect(scheduled_job["args"]).to eq(args)
-      expect(scheduled_job["sidekiq_rescue_counter"]).to eq(1)
+      expect(last_job["args"]).to eq(args)
     end
 
     it "reschedules the job with correct arguments and delay" do
       perform_async
 
-      delay = job_class.sidekiq_rescue_options[:delay]
-      expect(last_job["at"]).to be_within(10).of(Time.now.to_f + delay)
+      expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 60)
     end
 
     it "increments the counter" do
       perform_async
 
-      expect(last_job["sidekiq_rescue_counter"]).to eq(1)
+      expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[TestError]" => 1)
     end
 
     it "raises an error if the counter is greater than the limit" do
-      limit = job_class.sidekiq_rescue_options[:limit]
+      limit = 10
 
       job_class.perform_async(*args)
       limit.times { job_class.perform_one }
@@ -57,7 +54,7 @@ RSpec.describe "Sidekiq::Rescue", :integration do
   end
 
   context "with multiple errors" do
-    let(:job_class) { WithMultipleErrorsJob }
+    let(:job_class) { WithGroupErrorsJob }
 
     it "rescues the expected error" do
       expect { perform_async }.not_to raise_error
@@ -91,6 +88,40 @@ RSpec.describe "Sidekiq::Rescue", :integration do
     it "reschedules the job with correct delay" do
       expect { perform_async }.not_to raise_error
       expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 10)
+    end
+  end
+
+  context "with multiple errors and delay" do
+    let(:job_class) { WithMultipleErrorsAndDelayJob }
+
+    context "with TestError" do
+      let(:args) { "TestError" }
+
+      it "reschedules the job with correct delay" do
+        expect { perform_async }.not_to raise_error
+        expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 10)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[TestError]" => 1)
+      end
+    end
+
+    context "with ParentError" do
+      let(:args) { "ParentError" }
+
+      it "reschedules the job with correct delay" do
+        expect { perform_async }.not_to raise_error
+        expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 20)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[ParentError]" => 1)
+      end
+    end
+
+    context "with ChildError" do
+      let(:args) { "ChildError" }
+
+      it "reschedules the job with correct delay" do
+        expect { perform_async }.not_to raise_error
+        expect(last_job["at"]).to be_within(10).of(Time.now.to_f + 30)
+        expect(last_job["sidekiq_rescue_exceptions_counter"]).to eq("[ChildError]" => 1)
+      end
     end
   end
 end
