@@ -1,6 +1,10 @@
 ## [Unreleased]
 
+## [0.3.0] - 2024-05-30
+
 - Fix issue with RSpec matcher when job is not rescueable
+- Add support for multiple invocations of the DSL #3
+- Update documentation with new features
 
 ## [0.2.1] - 2024-02-27
 
