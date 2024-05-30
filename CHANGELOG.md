@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.3.1] - 2024-05-30
+
+- Fix bug with inheritance of DSL options
+
 ## [0.3.0] - 2024-05-30
 
 - Fix issue with RSpec matcher when job is not rescueable
@@ -26,7 +30,9 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.1
+[0.3.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.0
 [0.2.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.2.1
 [0.2.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.2.0
 [0.1.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.1.0
