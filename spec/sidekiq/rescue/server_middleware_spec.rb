@@ -22,7 +22,7 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
       call_with_expected_error
       expect(Sidekiq::Client).to have_received(:push).with(
-        job_payload.merge("at" => be_within(10).of(Time.now.to_f + 60),
+        job_payload.merge("at" => be_within(0.15 * 60).of(Time.now.to_f + 60),
                           "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
       )
     end
@@ -55,7 +55,7 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
       call_with_expected_error_and_delay_proc
       expect(Sidekiq::Client).to have_received(:push).with(
-        job_payload.merge("at" => be_within(20).of(Time.now.to_f + (10 * 2)),
+        job_payload.merge("at" => be_within(0.15 * 20).of(Time.now.to_f + 20),
                           "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 2 })
       )
     end
@@ -92,8 +92,43 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
 
       call_with_multiple_errors
       expect(Sidekiq::Client).to have_received(:push).with(
-        job_payload.merge("at" => be_within(10).of(Time.now.to_f + 60),
+        job_payload.merge("at" => be_within(0.15 * 60).of(Time.now.to_f + 60),
                           "sidekiq_rescue_exceptions_counter" => { "[TestError, ParentError, ChildError]" => 1 })
+      )
+    end
+  end
+
+  context "with alterated jitter" do
+    subject(:call_with_jitter) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithCustomJitterJob.new }
+
+    it "reschedules the job on expected error and increments counter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_jitter
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.15 * 60).of(Time.now.to_f + 60),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
+
+  context "with zero jitter and delay" do
+    subject(:call_with_zero_jitter) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithZeroJitterAndDelayJob.new }
+
+    it "reschedules the job without delay" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_zero_jitter
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
       )
     end
   end

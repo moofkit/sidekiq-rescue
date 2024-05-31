@@ -30,13 +30,13 @@ module Sidekiq
       end
 
       def rescue_error(error, error_group, options, job_payload)
-        delay, limit = options.fetch_values(:delay, :limit)
+        delay, limit, jitter = options.fetch_values(:delay, :limit, :jitter)
         rescue_counter = increment_rescue_counter_for(error_group, job_payload)
         raise error if rescue_counter > limit
 
-        reschedule_at = calculate_reschedule_time(delay, rescue_counter)
-        log_reschedule_info(rescue_counter, error, reschedule_at)
-        reschedule_job(job_payload: job_payload, reschedule_at: reschedule_at, rescue_counter: rescue_counter,
+        calculated_delay = calculate_delay(delay, rescue_counter, jitter)
+        log_reschedule_info(rescue_counter, error, calculated_delay)
+        reschedule_job(job_payload: job_payload, delay: calculated_delay, rescue_counter: rescue_counter,
                        error_group: error_group)
       end
 
@@ -46,23 +46,27 @@ module Sidekiq
         rescue_counter
       end
 
-      def calculate_reschedule_time(delay, rescue_counter)
-        # NOTE: we use the retry counter to increase the jitter
-        # so that the jobs don't retry at the same time
-        # inspired by sidekiq https://github.com/sidekiq/sidekiq/blob/73c150d0430a8394cadb5cd49218895b113613a0/lib/sidekiq/job_retry.rb#L188
-        jitter = rand(10) * rescue_counter
+      def calculate_delay(delay, rescue_counter, jitter)
         delay = delay.call(rescue_counter) if delay.is_a?(Proc)
-        Time.now.to_f + delay + jitter
+        jitter_delay = calculate_delay_jitter(jitter, delay)
+        delay + jitter_delay
       end
 
-      def log_reschedule_info(rescue_counter, error, reschedule_at)
+      def calculate_delay_jitter(jitter, delay)
+        return 0.0 if jitter.zero?
+
+        jitter * Kernel.rand * delay
+      end
+
+      def log_reschedule_info(rescue_counter, error, delay)
         Sidekiq::Rescue.logger.info("[sidekiq_rescue] Job failed #{rescue_counter} times with error: " \
-                                    "#{error.message}; rescheduling at #{reschedule_at}")
+                                    "#{error.message}; rescheduling in #{delay} seconds")
       end
 
-      def reschedule_job(job_payload:, reschedule_at:, rescue_counter:, error_group:)
-        payload = job_payload.merge("at" => reschedule_at,
-                                    "sidekiq_rescue_exceptions_counter" => { error_group.to_s => rescue_counter })
+      def reschedule_job(job_payload:, delay:, rescue_counter:, error_group:)
+        payload = job_payload.dup
+        payload["at"] = Time.now.to_f + delay if delay.positive?
+        payload["sidekiq_rescue_exceptions_counter"] = { error_group.to_s => rescue_counter }
         Sidekiq::Client.push(payload)
       end
     end

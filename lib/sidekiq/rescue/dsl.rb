@@ -22,13 +22,16 @@ module Sidekiq
         # @raise [ArgumentError] if error is not an array of StandardError
         # @raise [ArgumentError] if delay is not an Integer or Float
         # @raise [ArgumentError] if limit is not an Integer
+        # @raise [ArgumentError] if jitter is not an Integer or Float
         # @example
         #  sidekiq_rescue NetworkError, delay: 60, limit: 10
-        def sidekiq_rescue(*errors, delay: Sidekiq::Rescue.config.delay, limit: Sidekiq::Rescue.config.limit)
+        def sidekiq_rescue(*errors, delay: Sidekiq::Rescue.config.delay, limit: Sidekiq::Rescue.config.limit,
+                           jitter: Sidekiq::Rescue.config.jitter)
           unpacked_errors = validate_and_unpack_error_argument(errors)
           validate_delay_argument(delay)
           validate_limit_argument(limit)
-          assign_sidekiq_rescue_options(unpacked_errors, delay, limit)
+          validate_jitter_argument(jitter)
+          assign_sidekiq_rescue_options(errors: unpacked_errors, delay: delay, limit: limit, jitter: jitter)
         end
 
         # Find the error group and options for the given exception.
@@ -51,7 +54,6 @@ module Sidekiq
         end
 
         def validate_delay_argument(delay)
-          return if delay.nil?
           return if delay.is_a?(Integer) || delay.is_a?(Float)
 
           if delay.is_a?(Proc)
@@ -68,9 +70,17 @@ module Sidekiq
           raise ArgumentError, "limit must be integer" if limit && !limit.is_a?(Integer)
         end
 
-        def assign_sidekiq_rescue_options(errors, delay, limit)
+        def validate_jitter_argument(jitter)
+          return if jitter.is_a?(Integer) || jitter.is_a?(Float)
+
+          raise ArgumentError,
+                "jitter must be integer or float"
+        end
+
+        def assign_sidekiq_rescue_options(errors:, delay:, limit:, jitter:)
           self.sidekiq_rescue_options ||= {}
-          self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => { delay: delay, limit: limit })
+          self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => { delay: delay, limit: limit,
+                                                                                      jitter: jitter })
         end
       end
     end

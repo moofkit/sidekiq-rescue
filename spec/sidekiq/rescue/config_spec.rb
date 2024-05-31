@@ -33,6 +33,19 @@ RSpec.describe Sidekiq::Rescue::Config do
     end
   end
 
+  describe "#jitter=" do
+    it "sets the jitter value" do
+      config = described_class.new
+      config.jitter = 0.1
+      expect(config.jitter).to eq(0.1)
+    end
+
+    it "raises an ArgumentError if jitter is not an Integer or Float" do
+      config = described_class.new
+      expect { config.jitter = "invalid" }.to raise_error(ArgumentError)
+    end
+  end
+
   describe "#logger=" do
     it "sets the logger value" do
       config = described_class.new
