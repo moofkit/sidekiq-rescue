@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.4.0] - 2024-06-03
+- Add support for jitter configuration [#4](https://github.com/moofkit/sidekiq-rescue/pull/4)
+- Changes the strategy for retry delay. Now it's calculated using the formula `delay + delay * jitter * rand`
+
 ## [0.3.1] - 2024-05-30
 
 - Fix bug with inheritance of DSL options
@@ -7,7 +11,7 @@
 ## [0.3.0] - 2024-05-30
 
 - Fix issue with RSpec matcher when job is not rescueable
-- Add support for multiple invocations of the DSL #3
+- Add support for multiple invocations of the DSL
 - Update documentation with new features
 
 ## [0.2.1] - 2024-02-27
@@ -30,7 +34,8 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.4.0
 [0.3.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.1
 [0.3.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.0
 [0.2.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.2.1
