@@ -7,12 +7,14 @@ module Sidekiq
     class Config
       DEFAULTS = {
         delay: 60,
-        limit: 10
+        limit: 10,
+        jitter: 0.15
       }.freeze
 
       def initialize
         @delay = DEFAULTS[:delay]
         @limit = DEFAULTS[:limit]
+        @jitter = DEFAULTS[:jitter]
         @logger = Sidekiq.logger
       end
 
@@ -43,6 +45,22 @@ module Sidekiq
         raise ArgumentError, "limit must be an Integer" unless limit.is_a?(Integer)
 
         @limit = limit
+      end
+
+      # The jitter for the delay.
+      # @return [Integer, Float]
+      attr_reader :jitter
+
+      # @param jitter [Integer, Float] The jitter for the delay.
+      # @return [void]
+      # @raise [ArgumentError] if jitter is not an Integer or Float
+      def jitter=(jitter)
+        case jitter
+        when Integer, Float
+          @jitter = jitter
+        else
+          raise ArgumentError, "jitter must be Integer or Float"
+        end
       end
 
       # The logger instance.

@@ -16,7 +16,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
     it "sets error and default options" do
       define_dsl { sidekiq_rescue TestError }
 
-      expect(job_class.sidekiq_rescue_options).to eq({ [TestError] => { delay: 60, limit: 10 } })
+      expect(job_class.sidekiq_rescue_options).to eq({ [TestError] => { delay: 60, limit: 10, jitter: 0.15 } })
     end
 
     it "sets the error classes" do
@@ -108,6 +108,12 @@ RSpec.describe Sidekiq::Rescue::Dsl do
       )
     end
 
+    it "sets jitter" do
+      define_dsl { sidekiq_rescue TestError, jitter: 0.1 }
+
+      expect(job_class.sidekiq_rescue_options.dig([TestError], :jitter)).to eq(0.1)
+    end
+
     it "inherits the parent's options in right order" do
       parent = Class.new do
         include Sidekiq::Job
@@ -120,9 +126,9 @@ RSpec.describe Sidekiq::Rescue::Dsl do
         sidekiq_rescue ChildError, delay: 20
       end
 
-      expect(parent.sidekiq_rescue_options).to eq({ [ParentError] => { delay: 10, limit: 10 } })
-      expect(child.sidekiq_rescue_options.to_a).to eq([[[ParentError], { delay: 10, limit: 10 }],
-                                                       [[ChildError], { delay: 20, limit: 10 }]])
+      expect(parent.sidekiq_rescue_options).to eq({ [ParentError] => { delay: 10, limit: 10, jitter: 0.15 } })
+      expect(child.sidekiq_rescue_options.to_a).to eq([[[ParentError], { delay: 10, limit: 10, jitter: 0.15 }],
+                                                       [[ChildError], { delay: 20, limit: 10, jitter: 0.15 }]])
     end
   end
 
@@ -139,9 +145,12 @@ RSpec.describe Sidekiq::Rescue::Dsl do
         sidekiq_rescue ChildError, delay: 20
       end
 
-      expect(parent.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10)
-      expect(child.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10)
-      expect(child.sidekiq_rescue_error_group_with_options_by(ChildError.new).last).to eq(delay: 20, limit: 10)
+      expect(parent.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10,
+                                                                                            jitter: 0.15)
+      expect(child.sidekiq_rescue_error_group_with_options_by(ParentError.new).last).to eq(delay: 10, limit: 10,
+                                                                                           jitter: 0.15)
+      expect(child.sidekiq_rescue_error_group_with_options_by(ChildError.new).last).to eq(delay: 20, limit: 10,
+                                                                                          jitter: 0.15)
     end
   end
 end

@@ -81,7 +81,7 @@ class MyJob
   include Sidekiq::Job
   include Sidekiq::Rescue::Dsl
 
-  sidekiq_rescue ExpectedError, delay: 60, limit: 5
+  sidekiq_rescue ExpectedError, delay: 60, limit: 5, jitter: 0.15
 
   def perform(*)
     # ...
@@ -89,18 +89,20 @@ class MyJob
 end
 ```
 
-The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on retries counter and `delay` value. The formula is `delay + retries * rand(10)` seconds. Randomization is used to avoid retry storms.
+The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on jitter and `delay` value. The formula is `delay + delay * jitter * rand` seconds. Randomization is used to avoid retry storms. The `jitter` represents the upper bound of possible wait time (expressed as a percentage) and defaults to 0.15 (15%).
 
 The default values are:
 - `delay`: 60 seconds
 - `limit`: 5 retries
+- `jitter`: 0.15
 
-Delay and limit can be configured globally:
+Delay, limit and jitter can be configured globally:
 
 ```ruby
 Sidekiq::Rescue.configure do |config|
   config.delay = 65
   config.limit = 10
+  config.jitter = 0.2
 end
 ```
 
