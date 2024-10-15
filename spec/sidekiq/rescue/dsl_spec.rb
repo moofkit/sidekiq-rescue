@@ -47,6 +47,12 @@ RSpec.describe Sidekiq::Rescue::Dsl do
       expect(job_class.sidekiq_rescue_options.dig([TestError], :delay)).to be_a(Proc)
     end
 
+    it "sets the queue" do
+      define_dsl { sidekiq_rescue TestError, queue: "slow" }
+
+      expect(job_class.sidekiq_rescue_options.dig([TestError], :queue)).to eq("slow")
+    end
+
     it "raises an ArgumentError if delay proc has no arguments" do
       expect { define_dsl { sidekiq_rescue TestError, delay: -> { 10 } } }.to raise_error(
         ArgumentError,
