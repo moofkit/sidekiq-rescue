@@ -62,3 +62,11 @@ end
 class WithZeroJitterAndDelayJob < BaseJob
   sidekiq_rescue TestError, delay: 0, jitter: 0
 end
+
+class WithCustomQueueJob < BaseJob
+  sidekiq_rescue TestError, queue: "custom_queue"
+
+  def perform(*)
+    raise TestError
+  end
+end

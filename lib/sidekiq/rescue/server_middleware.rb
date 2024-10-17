@@ -31,13 +31,15 @@ module Sidekiq
 
       def rescue_error(error, error_group, options, job_payload)
         delay, limit, jitter = options.fetch_values(:delay, :limit, :jitter)
+        queue = options.fetch(:queue, job_payload["queue"])
+
         rescue_counter = increment_rescue_counter_for(error_group, job_payload)
         raise error if rescue_counter > limit
 
         calculated_delay = calculate_delay(delay, rescue_counter, jitter)
         log_reschedule_info(rescue_counter, error, calculated_delay)
         reschedule_job(job_payload: job_payload, delay: calculated_delay, rescue_counter: rescue_counter,
-                       error_group: error_group)
+                       error_group: error_group, queue: queue)
       end
 
       def increment_rescue_counter_for(error_group, job_payload)
@@ -63,10 +65,11 @@ module Sidekiq
                                     "#{error.message}; rescheduling in #{delay} seconds")
       end
 
-      def reschedule_job(job_payload:, delay:, rescue_counter:, error_group:)
+      def reschedule_job(job_payload:, delay:, rescue_counter:, error_group:, queue:)
         payload = job_payload.dup
         payload["at"] = Time.now.to_f + delay if delay.positive?
         payload["sidekiq_rescue_exceptions_counter"] = { error_group.to_s => rescue_counter }
+        payload["queue"] = queue
         Sidekiq::Client.push(payload)
       end
     end

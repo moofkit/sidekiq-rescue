@@ -16,14 +16,16 @@ class MyJob
 
   sidekiq_rescue CustomAppException # defaults to 60 seconds delay and 10 retries
   sidekiq_rescue AnotherCustomAppException, delay: ->(counter) { counter * 2 }
-  sidekiq_rescue CustomInfrastructureException, delay: 5.minutes
-  sidekiq_rescue ActiveRecord::Deadlocked, delay: 5.seconds, limit: 3
+  sidekiq_rescue CustomInfrastructureException, delay: 5.minutes.to_i
+  sidekiq_rescue ActiveRecord::Deadlocked, delay: 5.seconds.to_i, limit: 3
+  sidekiq_rescue TooManyRequestsError, queue: "slow"
   sidekiq_rescue Net::OpenTimeout, Timeout::Error, limit: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
 
   def perform(*args)
     # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
     # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
     # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
+    # Might raise TooManyRequestsError when the rate limit is exceeded
   end
 end
 ```
@@ -74,7 +76,7 @@ end
 
 ## Configuration
 
-You can configure the number of retries and the delay (in seconds) between retries:
+You can configure the number of retries and the delay *in seconds* between retries:
 
 ```ruby
 class MyJob
@@ -89,7 +91,12 @@ class MyJob
 end
 ```
 
-The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on jitter and `delay` value. The formula is `delay + delay * jitter * rand` seconds. Randomization is used to avoid retry storms. The `jitter` represents the upper bound of possible wait time (expressed as a percentage) and defaults to 0.15 (15%).
+* `delay` - the delay between retries in seconds
+* `limit` - the number of retries. The number of attempts includes the original job execution.
+* `jitter` - represents the upper bound of possible wait time (expressed as a percentage) and defaults to 0.15 (15%)
+* `queue` - the queue to which the job will be enqueued if it fails
+
+The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on jitter and `delay` value. The formula is `delay + delay * jitter * rand` seconds. Randomization is used to avoid retry storms.
 
 The default values are:
 - `delay`: 60 seconds

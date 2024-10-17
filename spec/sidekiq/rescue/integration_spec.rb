@@ -124,4 +124,13 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       end
     end
   end
+
+  context "with custom queue" do
+    let(:job_class) { WithCustomQueueJob }
+
+    it "reschedules the job with correct queue" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["queue"]).to eq("custom_queue")
+    end
+  end
 end

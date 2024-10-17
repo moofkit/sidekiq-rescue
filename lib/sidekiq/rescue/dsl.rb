@@ -23,15 +23,19 @@ module Sidekiq
         # @raise [ArgumentError] if delay is not an Integer or Float
         # @raise [ArgumentError] if limit is not an Integer
         # @raise [ArgumentError] if jitter is not an Integer or Float
+        # @raise [ArgumentError] if queue is not a String
         # @example
         #  sidekiq_rescue NetworkError, delay: 60, limit: 10
         def sidekiq_rescue(*errors, delay: Sidekiq::Rescue.config.delay, limit: Sidekiq::Rescue.config.limit,
-                           jitter: Sidekiq::Rescue.config.jitter)
+                           jitter: Sidekiq::Rescue.config.jitter, queue: nil)
           unpacked_errors = validate_and_unpack_error_argument(errors)
           validate_delay_argument(delay)
           validate_limit_argument(limit)
           validate_jitter_argument(jitter)
-          assign_sidekiq_rescue_options(errors: unpacked_errors, delay: delay, limit: limit, jitter: jitter)
+          validate_queue_argument(queue)
+          assign_sidekiq_rescue_options(
+            errors: unpacked_errors, delay: delay, limit: limit, jitter: jitter, queue: queue
+          )
         end
 
         # Find the error group and options for the given exception.
@@ -77,10 +81,18 @@ module Sidekiq
                 "jitter must be integer or float"
         end
 
-        def assign_sidekiq_rescue_options(errors:, delay:, limit:, jitter:)
+        def validate_queue_argument(queue)
+          return if queue.nil? || queue.is_a?(String)
+
+          raise ArgumentError,
+                "queue must be a string"
+        end
+
+        def assign_sidekiq_rescue_options(errors:, delay:, limit:, jitter:, queue:)
           self.sidekiq_rescue_options ||= {}
-          self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => { delay: delay, limit: limit,
-                                                                                      jitter: jitter })
+          self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => {
+            delay: delay, limit: limit, jitter: jitter, queue: queue
+          }.compact)
         end
       end
     end

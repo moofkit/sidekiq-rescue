@@ -132,4 +132,23 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
       )
     end
   end
+
+  context "with custom queue" do
+    subject(:call_with_custom_queue) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithCustomQueueJob.new }
+
+    it "reschedules the job on expected error and increments counter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_custom_queue
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => anything,
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 },
+                          "queue" => "custom_queue")
+      )
+    end
+  end
 end
