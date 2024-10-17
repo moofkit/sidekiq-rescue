@@ -102,4 +102,14 @@ RSpec.describe Sidekiq::Rescue::RSpec::Matchers do
     job_class = Class.new(BaseJob).tap { |klass| klass.sidekiq_rescue TestError, delay: 10, limit: 20 }
     expect(job_class).to have_sidekiq_rescue(TestError).with_delay(10).with_limit(20)
   end
+
+  it "works with jitter" do
+    job_class = Class.new(BaseJob).tap { |klass| klass.sidekiq_rescue TestError, jitter: 0.1 }
+    expect(job_class).to have_sidekiq_rescue(TestError).with_jitter(0.1)
+  end
+
+  it "works with queue" do
+    job_class = Class.new(BaseJob).tap { |klass| klass.sidekiq_rescue TestError, queue: "custom_queue" }
+    expect(job_class).to have_sidekiq_rescue(TestError).with_queue("custom_queue")
+  end
 end
