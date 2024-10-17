@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.5.0] - 2024-10-17
+- Add support for queue configuration [#5](https://github.com/moofkit/sidekiq-rescue/pull/5)
+
 ## [0.4.0] - 2024-06-03
 - Add support for jitter configuration [#4](https://github.com/moofkit/sidekiq-rescue/pull/4)
 - Changes the strategy for retry delay. Now it's calculated using the formula `delay + delay * jitter * rand`
@@ -34,7 +37,8 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.5.0
 [0.4.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.4.0
 [0.3.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.1
 [0.3.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.0
