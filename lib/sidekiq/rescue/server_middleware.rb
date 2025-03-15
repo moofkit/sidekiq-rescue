@@ -9,10 +9,10 @@ module Sidekiq
     class ServerMiddleware
       include Sidekiq::ServerMiddleware
 
-      def call(job_instance, job_payload, _queue, &block)
+      def call(job_instance, job_payload, _queue, &)
         job_class = job_instance.class
         if job_class.respond_to?(:sidekiq_rescue_options) && !job_class.sidekiq_rescue_options.nil?
-          sidekiq_rescue(job_payload, job_class, &block)
+          sidekiq_rescue(job_payload, job_class, &)
         else
           yield
         end
@@ -38,8 +38,8 @@ module Sidekiq
 
         calculated_delay = calculate_delay(delay, rescue_counter, jitter)
         log_reschedule_info(rescue_counter, error, calculated_delay)
-        reschedule_job(job_payload: job_payload, delay: calculated_delay, rescue_counter: rescue_counter,
-                       error_group: error_group, queue: queue)
+        reschedule_job(job_payload:, delay: calculated_delay, rescue_counter:,
+                       error_group:, queue:)
       end
 
       def increment_rescue_counter_for(error_group, job_payload)
