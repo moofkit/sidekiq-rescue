@@ -41,7 +41,8 @@ module Sidekiq
             matched = actual.is_a?(Class) &&
                       actual.include?(Sidekiq::Rescue::Dsl) &&
                       actual.respond_to?(:sidekiq_rescue_options) &&
-                      actual&.sidekiq_rescue_options&.keys&.flatten&.include?(expected)
+                      actual.sidekiq_rescue_options.is_a?(Hash) &&
+                      actual.sidekiq_rescue_options.keys.flatten.include?(expected)
 
             return false unless matched
 
