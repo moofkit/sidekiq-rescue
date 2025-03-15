@@ -1,5 +1,7 @@
 ## [Unreleased]
-- Add support for Sidekiq 8.0, Ruby 3.4
+
+## [0.6.0] - 2025-03-15
+- Add support for Sidekiq 8.0, Ruby 3.4 [#6](https://github.com/moofkit/sidekiq-rescue/pull/6)
 
 ## [0.5.0] - 2024-10-17
 - Add support for queue configuration [#5](https://github.com/moofkit/sidekiq-rescue/pull/5)
@@ -38,7 +40,8 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.6.0
 [0.5.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.5.0
 [0.4.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.4.0
 [0.3.1]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.3.1
