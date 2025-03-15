@@ -268,7 +268,7 @@ If something doesn't work on one of these versions, it's a bug
 
 ## Supported Sidekiq versions
 
-This gem supports Sidekiq 6.5+. It may work with older versions, but it's not tested.
+This gem supports Sidekiq 7.0+. It may work with older versions, but it's not tested.
 
 If you need support for older versions, please open an issue
 

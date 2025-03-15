@@ -34,7 +34,7 @@ module Sidekiq
           validate_jitter_argument(jitter)
           validate_queue_argument(queue)
           assign_sidekiq_rescue_options(
-            errors: unpacked_errors, delay: delay, limit: limit, jitter: jitter, queue: queue
+            errors: unpacked_errors, delay:, limit:, jitter:, queue:
           )
         end
 
@@ -91,7 +91,7 @@ module Sidekiq
         def assign_sidekiq_rescue_options(errors:, delay:, limit:, jitter:, queue:)
           self.sidekiq_rescue_options ||= {}
           self.sidekiq_rescue_options = self.sidekiq_rescue_options.merge(errors => {
-            delay: delay, limit: limit, jitter: jitter, queue: queue
+            delay:, limit:, jitter:, queue:
           }.compact)
         end
       end
