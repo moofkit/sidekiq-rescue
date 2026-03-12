@@ -6,7 +6,9 @@ source "https://rubygems.org"
 gemspec
 
 gem "appraisal"
-gem "rake", "~> 13.0"
+gem "logger"
+gem "ostruct"
+gem "rake", "~> 13.3"
 
 gem "rspec", "~> 3.0"
 
