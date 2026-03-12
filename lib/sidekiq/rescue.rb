@@ -30,6 +30,7 @@ module Sidekiq
 
     class << self
       extend Forwardable
+
       # Returns the logger instance
       #
       # @return [Logger] The logger instance.

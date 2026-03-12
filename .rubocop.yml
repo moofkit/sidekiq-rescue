@@ -17,8 +17,13 @@ Layout/LineLength:
   Max: 120
 
 Naming/FileName:
-  Exclude: ['lib/sidekiq-rescue.rb']
+  Exclude: ["lib/sidekiq-rescue.rb"]
 
 Style/FrozenStringLiteralComment:
   Exclude:
-    - 'gemfiles/**/*'
+    - "gemfiles/**/*"
+
+Style/OneClassPerFile:
+  Exclude:
+    - "spec/support/jobs.rb"
+    - "spec/support/errors.rb"
