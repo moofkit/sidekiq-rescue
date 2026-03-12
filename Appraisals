@@ -29,3 +29,9 @@ appraise "sidekiq-8.0.x" do
     gem "sidekiq", "~> 8.0.0"
   end
 end
+
+appraise "sidekiq-8.1.x" do
+  group :test do
+    gem "sidekiq", "~> 8.0.0"
+  end
+end
