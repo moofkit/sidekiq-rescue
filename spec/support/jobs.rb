@@ -53,7 +53,8 @@ class WithMultipleErrorsAndDelayJob < BaseJob
   end
 end
 
-ChildJobWithExpectedError = Class.new(WithTestErrorJob)
+class ChildJobWithExpectedError < WithTestErrorJob
+end
 
 class WithCustomJitterJob < BaseJob
   sidekiq_rescue TestError, jitter: 0.1

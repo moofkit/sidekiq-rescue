@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
-TestError = Class.new(StandardError)
-ParentError = Class.new(TestError)
-ChildError = Class.new(ParentError)
-UnexpectedError = Class.new(StandardError)
+class TestError < StandardError
+end
+
+class ParentError < TestError
+end
+
+class ChildError < ParentError
+end
+
+class UnexpectedError < StandardError
+end

@@ -24,23 +24,24 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - '3.2'
-          - '3.3'
-          - '3.4'
+          - "3.2"
+          - "3.3"
+          - "3.4"
+          - "4.0"
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true
-    - name: Install dependencies
-      run: make init
-    - name: Run tests
-      run: make test
-    - name: Run lints
-      run: make lint
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Install dependencies
+        run: make init
+      - name: Run tests
+        run: make test
+      - name: Run lints
+        run: make lint
   results:
     if: ${{ always() }}
     runs-on: ubuntu-latest
