@@ -151,4 +151,40 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
       )
     end
   end
+
+  context "with polynomially_longer delay strategy" do
+    subject(:call_with_polynomial) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithPolynomialDelayJob.new }
+
+    it "reschedules with polynomial delay and jitter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_polynomial
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.15 * 3).of(Time.now.to_f + 3),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
+
+  context "with polynomially_longer delay and zero jitter" do
+    subject(:call_with_polynomial_no_jitter) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithPolynomialDelayAndZeroJitterJob.new }
+
+    it "reschedules with deterministic polynomial delay" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_polynomial_no_jitter
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.01).of(Time.now.to_f + 3),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
 end

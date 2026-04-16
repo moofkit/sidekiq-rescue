@@ -2,6 +2,8 @@
 
 module Sidekiq
   module Rescue
+    DELAY_STRATEGIES = %i[polynomially_longer].freeze
+
     # This module is included into the job class to provide the Dsl for
     # configuring rescue options.
     module Dsl
@@ -15,7 +17,8 @@ module Sidekiq
         # Configure rescue options for the job.
         # @param error [StandardError] The error class to rescue.
         # @param error [Array<StandardError>] The error classes to rescue.
-        # @param delay [Integer, Float, Proc] The delay in seconds before retrying the job.
+        # @param delay [Integer, Float, Proc, Symbol] The delay in seconds before retrying the job.
+        #   Symbols like `:polynomially_longer` are built-in delay strategies.
         # @param limit [Integer] The maximum number of retries.
         # @return [void]
         # @raise [ArgumentError] if error is not a StandardError
@@ -66,8 +69,10 @@ module Sidekiq
             return
           end
 
+          return if delay.is_a?(Symbol) && DELAY_STRATEGIES.include?(delay)
+
           raise ArgumentError,
-                "delay must be integer, float or proc"
+                "delay must be integer, float, proc, or one of: #{DELAY_STRATEGIES.join(", ")}"
         end
 
         def validate_limit_argument(limit)

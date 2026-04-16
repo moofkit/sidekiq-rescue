@@ -71,3 +71,19 @@ class WithCustomQueueJob < BaseJob
     raise TestError
   end
 end
+
+class WithPolynomialDelayJob < BaseJob
+  sidekiq_rescue TestError, delay: :polynomially_longer
+
+  def perform(*)
+    raise TestError
+  end
+end
+
+class WithPolynomialDelayAndZeroJitterJob < BaseJob
+  sidekiq_rescue TestError, delay: :polynomially_longer, jitter: 0
+
+  def perform(*)
+    raise TestError
+  end
+end

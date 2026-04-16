@@ -133,4 +133,22 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       expect(last_job["queue"]).to eq("custom_queue")
     end
   end
+
+  context "with polynomially_longer delay strategy" do
+    let(:job_class) { WithPolynomialDelayJob }
+
+    it "reschedules the job with polynomial delay" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["at"]).to be_within(1).of(Time.now.to_f + 3)
+    end
+  end
+
+  context "with polynomially_longer delay strategy and zero jitter" do
+    let(:job_class) { WithPolynomialDelayAndZeroJitterJob }
+
+    it "reschedules the job with deterministic polynomial delay" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["at"]).to be_within(0.01).of(Time.now.to_f + 3)
+    end
+  end
 end
