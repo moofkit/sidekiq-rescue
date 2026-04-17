@@ -20,6 +20,7 @@ class MyJob
   sidekiq_rescue ActiveRecord::Deadlocked, delay: 5.seconds.to_i, limit: 3
   sidekiq_rescue TooManyRequestsError, queue: "slow"
   sidekiq_rescue Net::OpenTimeout, Timeout::Error, limit: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+  sidekiq_rescue FlakyServiceError, delay: :polynomially_longer
 
   def perform(*args)
     # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
@@ -91,16 +92,16 @@ class MyJob
 end
 ```
 
-* `delay` - the delay between retries in seconds
+* `delay` - the delay between retries in seconds. Accepts an `Integer`, `Float`, `Proc` (receives the retry counter), or a built-in strategy symbol (see **Built-in delay strategies** below).
 * `limit` - the number of retries. The number of attempts includes the original job execution.
 * `jitter` - represents the upper bound of possible wait time (expressed as a percentage) and defaults to 0.15 (15%)
 * `queue` - the queue to which the job will be enqueued if it fails
 
-The `delay` is not the exact time between retries, but a minimum delay. The actual delay calculates based on jitter and `delay` value. The formula is `delay + delay * jitter * rand` seconds. Randomization is used to avoid retry storms.
+The `delay` is not the exact time between retries, but a minimum delay. For fixed and proc-based delays, the actual delay is `delay + delay * jitter * rand` seconds. Randomization is used to avoid retry storms. Built-in delay strategy symbols define their own formulas.
 
 The default values are:
 - `delay`: 60 seconds
-- `limit`: 5 retries
+- `limit`: 10 retries
 - `jitter`: 0.15
 
 Delay, limit and jitter can be configured globally:
@@ -125,6 +126,29 @@ or globally:
 Sidekiq::Rescue.configure do |config|
   config.delay = ->(counter) { counter * 60 }
 end
+```
+
+### Built-in delay strategies
+
+The `delay:` option accepts the following built-in strategy symbols:
+
+#### `:polynomially_longer`
+
+Applies a polynomial backoff formula: `(executions**4) + (Kernel.rand * (executions**4) * jitter) + 2`
+
+The `jitter:` option controls randomness (same semantics as for fixed delays). Setting `jitter: 0` makes the delay deterministic.
+
+| Attempt | Approx. delay (default jitter) |
+|---------|-------------------------------|
+| 1       | ~3s                           |
+| 2       | ~18s                          |
+| 3       | ~83s                          |
+| 4       | ~260s (~4m)                   |
+| 5       | ~627s (~10m)                  |
+
+```ruby
+sidekiq_rescue FlakyServiceError, delay: :polynomially_longer
+sidekiq_rescue FlakyServiceError, delay: :polynomially_longer, jitter: 0  # deterministic
 ```
 
 ### Testing

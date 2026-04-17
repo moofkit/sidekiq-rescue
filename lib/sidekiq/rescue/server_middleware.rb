@@ -49,9 +49,17 @@ module Sidekiq
       end
 
       def calculate_delay(delay, rescue_counter, jitter)
+        return polynomially_longer_delay(rescue_counter, jitter) if delay == :polynomially_longer
+
         delay = delay.call(rescue_counter) if delay.is_a?(Proc)
         jitter_delay = calculate_delay_jitter(jitter, delay)
         delay + jitter_delay
+      end
+
+      def polynomially_longer_delay(executions, jitter)
+        base = executions**4
+        random_component = jitter.zero? ? 0.0 : Kernel.rand * base * jitter
+        base + random_component + 2
       end
 
       def calculate_delay_jitter(jitter, delay)
