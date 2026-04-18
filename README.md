@@ -134,7 +134,7 @@ The `delay:` option accepts the following built-in strategy symbols:
 
 #### `:polynomially_longer`
 
-Applies a polynomial backoff formula: `(executions**4) + (Kernel.rand * (executions**4) * jitter) + 2`
+Applies a polynomial backoff formula: `(executions**4 + 2) + (Kernel.rand * (executions**4 + 2) * jitter)`
 
 The `jitter:` option controls randomness (same semantics as for fixed delays). Setting `jitter: 0` makes the delay deterministic.
 
@@ -149,6 +149,25 @@ The `jitter:` option controls randomness (same semantics as for fixed delays). S
 ```ruby
 sidekiq_rescue FlakyServiceError, delay: :polynomially_longer
 sidekiq_rescue FlakyServiceError, delay: :polynomially_longer, jitter: 0  # deterministic
+```
+
+#### `:exponentially_longer`
+
+Applies an exponential backoff formula: `(2**executions) + (Kernel.rand * (2**executions) * jitter)`
+
+The `jitter:` option controls randomness. Setting `jitter: 0` makes the delay deterministic.
+
+| Attempt | Delay (jitter: 0) | Approx. delay (default jitter) |
+|---------|-------------------|-------------------------------|
+| 1       | 2s                | ~2s                           |
+| 2       | 4s                | ~4s                           |
+| 3       | 8s                | ~9s                           |
+| 4       | 16s               | ~18s                          |
+| 5       | 32s               | ~37s                          |
+
+```ruby
+sidekiq_rescue FlakyServiceError, delay: :exponentially_longer
+sidekiq_rescue FlakyServiceError, delay: :exponentially_longer, jitter: 0  # deterministic
 ```
 
 ### Testing

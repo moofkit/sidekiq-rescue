@@ -187,4 +187,94 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
       )
     end
   end
+
+  context "with exponentially_longer delay strategy" do
+    subject(:call_with_exponential) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithExponentialDelayJob.new }
+
+    it "reschedules with exponential delay and jitter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_exponential
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.15 * 2).of(Time.now.to_f + 2),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
+
+  context "with exponentially_longer delay and zero jitter" do
+    subject(:call_with_exponential_no_jitter) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithExponentialDelayAndZeroJitterJob.new }
+
+    it "reschedules with deterministic exponential delay" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_exponential_no_jitter
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.01).of(Time.now.to_f + 2),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
+
+  context "with polynomially_longer delay progression (zero jitter)" do
+    let(:job_instance) { WithPolynomialDelayAndZeroJitterJob.new }
+
+    # base = executions**4 + 2
+    {
+      1 => 3,   # 1**4 + 2
+      2 => 18,  # 2**4 + 2
+      3 => 83,  # 3**4 + 2
+      4 => 258, # 4**4 + 2
+      5 => 627  # 5**4 + 2
+    }.each do |execution, expected_delay|
+      it "schedules #{expected_delay}s delay at execution #{execution}" do
+        payload = job_payload.merge(
+          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => execution - 1 }
+        )
+        allow(Sidekiq::Client).to receive(:push)
+        middleware.call(job_instance, payload, "default") { raise TestError }
+        expect(Sidekiq::Client).to have_received(:push).with(
+          hash_including(
+            "at" => be_within(0.01).of(Time.now.to_f + expected_delay),
+            "sidekiq_rescue_exceptions_counter" => { "[TestError]" => execution }
+          )
+        )
+      end
+    end
+  end
+
+  context "with exponentially_longer delay progression (zero jitter)" do
+    let(:job_instance) { WithExponentialDelayAndZeroJitterJob.new }
+
+    # base = 2**executions
+    {
+      1 => 2,  # 2**1
+      2 => 4,  # 2**2
+      3 => 8,  # 2**3
+      4 => 16, # 2**4
+      5 => 32  # 2**5
+    }.each do |execution, expected_delay|
+      it "schedules #{expected_delay}s delay at execution #{execution}" do
+        payload = job_payload.merge(
+          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => execution - 1 }
+        )
+        allow(Sidekiq::Client).to receive(:push)
+        middleware.call(job_instance, payload, "default") { raise TestError }
+        expect(Sidekiq::Client).to have_received(:push).with(
+          hash_including(
+            "at" => be_within(0.01).of(Time.now.to_f + expected_delay),
+            "sidekiq_rescue_exceptions_counter" => { "[TestError]" => execution }
+          )
+        )
+      end
+    end
+  end
 end
