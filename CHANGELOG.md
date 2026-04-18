@@ -2,6 +2,7 @@
 
 - Add `:polynomially_longer` built-in delay strategy for polynomial backoff (`executions**4 + 2` base, with configurable jitter) [#8](https://github.com/moofkit/sidekiq-rescue/pull/8)
 - Add `:exponentially_longer` built-in delay strategy for exponential backoff (`2**executions` base, with configurable jitter) [#14](https://github.com/moofkit/sidekiq-rescue/pull/14)
+- Bump and pin github actions
 
 ## [0.6.0] - 2025-03-15
 - Add support for Sidekiq 8.0, Ruby 3.4 [#6](https://github.com/moofkit/sidekiq-rescue/pull/6)
