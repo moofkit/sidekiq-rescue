@@ -151,4 +151,22 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       expect(last_job["at"]).to be_within(0.01).of(Time.now.to_f + 3)
     end
   end
+
+  context "with exponentially_longer delay strategy" do
+    let(:job_class) { WithExponentialDelayJob }
+
+    it "reschedules the job with exponential delay" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["at"]).to be_within(1).of(Time.now.to_f + 2)
+    end
+  end
+
+  context "with exponentially_longer delay strategy and zero jitter" do
+    let(:job_class) { WithExponentialDelayAndZeroJitterJob }
+
+    it "reschedules the job with deterministic exponential delay" do
+      expect { perform_async }.not_to raise_error
+      expect(last_job["at"]).to be_within(0.01).of(Time.now.to_f + 2)
+    end
+  end
 end

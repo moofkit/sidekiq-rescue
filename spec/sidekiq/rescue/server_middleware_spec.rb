@@ -187,4 +187,40 @@ RSpec.describe Sidekiq::Rescue::ServerMiddleware do
       )
     end
   end
+
+  context "with exponentially_longer delay strategy" do
+    subject(:call_with_exponential) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithExponentialDelayJob.new }
+
+    it "reschedules with exponential delay and jitter" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_exponential
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.15 * 2).of(Time.now.to_f + 2),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
+
+  context "with exponentially_longer delay and zero jitter" do
+    subject(:call_with_exponential_no_jitter) do
+      middleware.call(job_instance, job_payload, "default") { raise TestError }
+    end
+
+    let(:job_instance) { WithExponentialDelayAndZeroJitterJob.new }
+
+    it "reschedules with deterministic exponential delay" do
+      allow(Sidekiq::Client).to receive(:push)
+
+      call_with_exponential_no_jitter
+      expect(Sidekiq::Client).to have_received(:push).with(
+        job_payload.merge("at" => be_within(0.01).of(Time.now.to_f + 2),
+                          "sidekiq_rescue_exceptions_counter" => { "[TestError]" => 1 })
+      )
+    end
+  end
 end

@@ -103,7 +103,7 @@ RSpec.describe Sidekiq::Rescue::Dsl do
     it "raises ArgumentError if delay is not an integer or float" do
       expect { define_dsl { sidekiq_rescue TestError, delay: "60" } }.to raise_error(
         ArgumentError,
-        "delay must be integer, float, proc, or one of: polynomially_longer"
+        "delay must be integer, float, proc, or one of: polynomially_longer, exponentially_longer"
       )
     end
 
@@ -113,10 +113,16 @@ RSpec.describe Sidekiq::Rescue::Dsl do
       expect(job_class.sidekiq_rescue_options.dig([TestError], :delay)).to eq(:polynomially_longer)
     end
 
+    it "sets the delay symbol :exponentially_longer" do
+      define_dsl { sidekiq_rescue TestError, delay: :exponentially_longer }
+
+      expect(job_class.sidekiq_rescue_options.dig([TestError], :delay)).to eq(:exponentially_longer)
+    end
+
     it "raises ArgumentError if delay is an unrecognized symbol" do
       expect { define_dsl { sidekiq_rescue TestError, delay: :foo } }.to raise_error(
         ArgumentError,
-        "delay must be integer, float, proc, or one of: polynomially_longer"
+        "delay must be integer, float, proc, or one of: polynomially_longer, exponentially_longer"
       )
     end
 

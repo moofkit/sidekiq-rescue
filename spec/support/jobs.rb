@@ -87,3 +87,19 @@ class WithPolynomialDelayAndZeroJitterJob < BaseJob
     raise TestError
   end
 end
+
+class WithExponentialDelayJob < BaseJob
+  sidekiq_rescue TestError, delay: :exponentially_longer
+
+  def perform(*)
+    raise TestError
+  end
+end
+
+class WithExponentialDelayAndZeroJitterJob < BaseJob
+  sidekiq_rescue TestError, delay: :exponentially_longer, jitter: 0
+
+  def perform(*)
+    raise TestError
+  end
+end
