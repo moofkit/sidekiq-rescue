@@ -1,8 +1,10 @@
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-18
+
 - Add `:polynomially_longer` built-in delay strategy for polynomial backoff (`executions**4 + 2` base, with configurable jitter) [#8](https://github.com/moofkit/sidekiq-rescue/pull/8)
 - Add `:exponentially_longer` built-in delay strategy for exponential backoff (`2**executions` base, with configurable jitter) [#14](https://github.com/moofkit/sidekiq-rescue/pull/14)
-- Bump and pin github actions
+- Bump and pin github actions [#15](https://github.com/moofkit/sidekiq-rescue/pull/14)
 
 ## [0.6.0] - 2025-03-15
 - Add support for Sidekiq 8.0, Ruby 3.4 [#6](https://github.com/moofkit/sidekiq-rescue/pull/6)
@@ -44,7 +46,8 @@
 - Add documentation
 - Add CI
 
-[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/moofkit/sidekiq-rescue/compare/v0.7.0...HEAD
+[0.6.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.7.0
 [0.6.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.6.0
 [0.5.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.5.0
 [0.4.0]: https://github.com/moofkit/sidekiq-rescue/releases/tag/v0.4.0
