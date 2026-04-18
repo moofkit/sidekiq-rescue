@@ -169,4 +169,32 @@ RSpec.describe "Sidekiq::Rescue", :integration do
       expect(last_job["at"]).to be_within(0.01).of(Time.now.to_f + 2)
     end
   end
+
+  context "with polynomially_longer delay progression (zero jitter)" do
+    let(:job_class) { WithPolynomialDelayAndZeroJitterJob }
+
+    it "increases delay polynomially across executions" do
+      job_class.perform_async(*args)
+
+      # base = executions**4 + 2
+      [3, 18, 83, 258, 627].each do |expected_delay|
+        job_class.perform_one
+        expect(job_class.jobs.last["at"]).to be_within(0.01).of(Time.now.to_f + expected_delay)
+      end
+    end
+  end
+
+  context "with exponentially_longer delay progression (zero jitter)" do
+    let(:job_class) { WithExponentialDelayAndZeroJitterJob }
+
+    it "increases delay exponentially across executions" do
+      job_class.perform_async(*args)
+
+      # base = 2**executions
+      [2, 4, 8, 16, 32].each do |expected_delay|
+        job_class.perform_one
+        expect(job_class.jobs.last["at"]).to be_within(0.01).of(Time.now.to_f + expected_delay)
+      end
+    end
+  end
 end
